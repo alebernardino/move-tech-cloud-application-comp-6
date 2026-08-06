@@ -34,12 +34,12 @@ jobs:
     - name: Login no Container Registry
       run: |
         docker login https://${{ env.REGISTRY }} \
-          -u ${{ secrets.MGC_REGISTRY_USER }} \
-          -p ${{ secrets.MGC_REGISTRY_PASSWORD }}
+          -u ${{ secrets.REGISTRY_USER }} \
+          -p ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build e push da imagem
       run: |
-        BASE=${{ env.REGISTRY }}/${{ secrets.MGC_REGISTRY_NAME }}/${{ env.IMAGE_NAME }}
+        BASE=${{ env.REGISTRY }}/${{ secrets.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}
         docker build -t $BASE:${{ github.sha }} -t $BASE:latest .
         docker push $BASE:${{ github.sha }}
         docker push $BASE:latest
@@ -53,8 +53,8 @@ jobs:
         export KUBECONFIG=kubeconfig.yaml
         kubectl create secret docker-registry registry-secret \
           --docker-server=${{ env.REGISTRY }} \
-          --docker-username=${{ secrets.MGC_REGISTRY_USER }} \
-          --docker-password=${{ secrets.MGC_REGISTRY_PASSWORD }} \
+          --docker-username=${{ secrets.REGISTRY_USER }} \
+          --docker-password=${{ secrets.REGISTRY_PASSWORD }} \
           --dry-run=client -o yaml | kubectl apply -f -
 
     - name: Criar Secret do banco
@@ -67,7 +67,7 @@ jobs:
     - name: Deploy no Kubernetes
       run: |
         export KUBECONFIG=kubeconfig.yaml
-        export MGC_REGISTRY_NAME=${{ secrets.MGC_REGISTRY_NAME }}
+        export REGISTRY_NAME=${{ secrets.REGISTRY_NAME }}
         export IMAGE_TAG=${{ github.sha }}
         envsubst < k8s/app.yaml | kubectl apply -f -
         kubectl apply -f k8s/hpa.yaml
